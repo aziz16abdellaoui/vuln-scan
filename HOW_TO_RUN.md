@@ -1,7 +1,7 @@
-# 🔥 How to Run the Full Modular Vulnerability Scanner
+# 🔥 How to Run Vuln-Scan - Modular Vulnerability Scanner
 
 ## 📖 Overview
-The vulnerability scanner has been successfully refactored from a monolithic application into a modular architecture. You now have multiple ways to run the complete program.
+Vuln-Scan has been successfully refactored from a monolithic application into a modular architecture. You now have multiple ways to run the complete program.
 
 ## 🚀 Quick Start Options
 
@@ -55,7 +55,7 @@ python3 tools/email_crawler.py
 
 ## 📁 Project Structure
 ```
-vuln_scanner_web/
+vuln-scan/
 ├── main.py                  # 🚀 Main entry point
 ├── app_modular.py           # 🌐 Modular web interface
 ├── main_scanner.py          # 💻 CLI orchestrator
@@ -172,7 +172,7 @@ python3 test_modular.py
 
 ## 🎉 Success!
 
-The modular vulnerability scanner is now complete and ready to use. The refactoring has achieved:
+Vuln-Scan is now complete and ready to use. The refactoring has achieved:
 
 ✅ **Separation of Concerns**: Each tool is its own module  
 ✅ **Improved Debugging**: Issues can be isolated to specific modules  

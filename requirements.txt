@@ -1,0 +1,48 @@
+# Flask Web Framework and Dependencies
+Flask==2.3.3
+Werkzeug==2.3.7
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+
+# HTTP Requests and Web Scraping
+requests==2.31.0
+urllib3==2.0.4
+
+# Selenium for Web Automation (HaveIBeenPwned checker)
+selenium==4.15.2
+
+# Data Processing and Analysis
+python-nmap==0.7.1
+
+# JSON and XML Processing (built-in modules)
+# json - built-in
+# xml.etree.ElementTree - built-in
+
+# System and File Operations (built-in modules)
+# os - built-in
+# sys - built-in
+# subprocess - built-in
+# threading - built-in
+# datetime - built-in
+# time - built-in
+# re - built-in
+
+# Additional utilities
+hashlib
+base64
+
+# Development and Testing (optional)
+pytest==7.4.2
+pytest-flask==1.3.0
+
+# Security headers analysis
+cryptography==41.0.4
+
+# CSV handling (built-in)
+# csv - built-in
+
+# PDF generation (optional - for future enhancements)
+reportlab==4.0.4
+
+# For pretty printing JSON
+# pprint - built-in

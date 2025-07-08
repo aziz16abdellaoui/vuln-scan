@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vulnerability Scanner</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1 { color: #333; }
+    .section { margin-top: 30px; }
+    .high { color: red; }
+    .medium { color: orange; }
+    .low { color: green; }
+    .info { color: gray; }
+    button { padding: 10px 20px; margin-top: 10px; cursor: pointer; }
+    progress { width: 100%; height: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Vulnerability Scanner</h1>
+  <form id="scanForm">
+    <input type="text" id="target" placeholder="Enter domain or IP" required />
+    <button type="submit">Start Scan</button>
+  </form>
+
+  <progress id="scanProgress" value="0" max="100" style="display:none;"></progress>
+
+  <div class="section" id="vulnsSection" style="display:none;">
+    <h2>Detected Vulnerabilities</h2>
+    <div class="high">
+      <h3>High Severity</h3>
+      <ul id="vulnHigh"></ul>
+    </div>
+    <div class="medium">
+      <h3>Medium Severity</h3>
+      <ul id="vulnMedium"></ul>
+    </div>
+    <div class="low">
+      <h3>Low Severity</h3>
+      <ul id="vulnLow"></ul>
+    </div>
+    <div class="info">
+      <h3>Informational</h3>
+      <ul id="vulnInfo"></ul>
+    </div>
+    <button id="reportBtn" style="display:none;">View Full Report</button>
+  </div>
+
+  <script>
+    const form = document.getElementById("scanForm");
+    const vulnSection = document.getElementById("vulnsSection");
+    const vulnHigh = document.getElementById("vulnHigh");
+    const vulnMedium = document.getElementById("vulnMedium");
+    const vulnLow = document.getElementById("vulnLow");
+    const vulnInfo = document.getElementById("vulnInfo");
+    const reportBtn = document.getElementById("reportBtn");
+    const progressBar = document.getElementById("scanProgress");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const target = document.getElementById("target").value.trim();
+      if (!target) return alert("Please enter a target.");
+
+      vulnSection.style.display = "none";
+      vulnHigh.innerHTML = "";
+      vulnMedium.innerHTML = "";
+      vulnLow.innerHTML = "";
+      vulnInfo.innerHTML = "";
+      reportBtn.style.display = "none";
+      progressBar.style.display = "block";
+      progressBar.value = 0;
+
+      const resp = await fetch("/start_scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ target })
+      });
+
+      if (!resp.ok) return alert("Failed to start scan");
+
+      const steps = ["Nmap", "Gobuster", "SpiderFoot"];
+      let done = false;
+      while (!done) {
+        const r = await fetch(`/scan_status/${target}`);
+        const data = await r.json();
+        if (!data.status || data.status.length === 0) return;
+
+        const completedSteps = steps.filter(s => data.status.some(line => line.includes(`${s} completed`)));
+        const progress = Math.round((completedSteps.length / steps.length) * 100);
+        progressBar.value = progress;
+
+        if (data.status[data.status.length - 1].toLowerCase().includes("scan completed")) {
+          done = true;
+          progressBar.value = 100;
+          setTimeout(() => progressBar.style.display = "none", 2000);
+
+          vulnSection.style.display = "block";
+
+          for (const v of data.grouped.high || []) {
+            const li = document.createElement("li");
+            li.textContent = v;
+            vulnHigh.appendChild(li);
+          }
+          for (const v of data.grouped.medium || []) {
+            const li = document.createElement("li");
+            li.textContent = v;
+            vulnMedium.appendChild(li);
+          }
+          for (const v of data.grouped.low || []) {
+            const li = document.createElement("li");
+            li.textContent = v;
+            vulnLow.appendChild(li);
+          }
+          for (const v of data.grouped.info || []) {
+            const li = document.createElement("li");
+            li.textContent = v;
+            vulnInfo.appendChild(li);
+          }
+
+          reportBtn.style.display = "inline-block";
+          reportBtn.onclick = () => window.open(`/report/${target}`, "_blank");
+        }
+
+        if (!done) await new Promise(r => setTimeout(r, 2000));
+      }
+    });
+  </script>
+</body>
+</html>

@@ -2,8 +2,8 @@
 # GitHub Setup Script for Vulnerability Scanner
 # Run this script after creating a new repository on GitHub
 
-echo "🚀 GitHub Setup for Vulnerability Scanner"
-echo "=========================================="
+echo "🚀 GitHub Setup for Vuln-Scan"
+echo "=============================="
 echo ""
 
 # Check if git is configured
@@ -26,17 +26,17 @@ echo "📝 Steps to publish to GitHub:"
 echo ""
 echo "1. Create a new repository on GitHub:"
 echo "   - Go to: https://github.com/new"
-echo "   - Repository name: vuln-scanner-web"
+echo "   - Repository name: vuln-scan"
 echo "   - Description: Modular vulnerability scanner with web interface and CLI"
 echo "   - Make it Public (recommended for open source)"
 echo "   - DO NOT initialize with README, .gitignore, or license (we already have these)"
 echo ""
 echo "2. After creating the repository, run these commands:"
-echo "   git remote add origin https://github.com/YOURUSERNAME/vuln-scanner-web.git"
+echo "   git remote add origin https://github.com/mohamedazizabdellaoui/vuln-scan.git"
 echo "   git push -u origin main"
 echo ""
 echo "3. Your repository will be live at:"
-echo "   https://github.com/YOURUSERNAME/vuln-scanner-web"
+echo "   https://github.com/mohamedazizabdellaoui/vuln-scan"
 echo ""
 
 # Project stats

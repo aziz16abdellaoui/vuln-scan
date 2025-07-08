@@ -42,7 +42,7 @@
 
 ### Step 1: Create GitHub Repository
 1. Go to https://github.com/new
-2. Repository name: `vuln-scanner-web`
+2. Repository name: `vuln-scan`
 3. Description: `Modular vulnerability scanner with web interface and CLI`
 4. Make it **Public** (recommended for open source)
 5. **DO NOT** check any initialization options (README, .gitignore, license)
@@ -50,8 +50,8 @@
 
 ### Step 2: Push Local Repository
 ```bash
-# Replace YOURUSERNAME with your actual GitHub username
-git remote add origin https://github.com/YOURUSERNAME/vuln-scanner-web.git
+# Replace with your actual GitHub username if different
+git remote add origin https://github.com/mohamedazizabdellaoui/vuln-scan.git
 git push -u origin main
 ```
 

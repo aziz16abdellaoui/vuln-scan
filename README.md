@@ -1,10 +1,11 @@
-# Vulnerability Scanner Web Application
+# Vuln-Scan
 
 A comprehensive, modular vulnerability scanner with web interface and CLI support. Features 8 specialized scanning tools integrated into a unified platform.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.7%2B-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-linux-lightgrey.svg)
+![Author](https://img.shields.io/badge/author-Mohamed%20Aziz%20Abdellaoui-blue.svg)
 
 ## 🚀 Features
 
@@ -31,7 +32,7 @@ A comprehensive, modular vulnerability scanner with web interface and CLI suppor
 ## 📁 Project Structure
 
 ```
-vuln_scanner_web/
+vuln-scan/
 ├── main.py                 # Main entry point (starts web UI)
 ├── main_scanner.py         # CLI orchestrator
 ├── app_modular.py          # Modular Flask web application
@@ -75,8 +76,8 @@ go install github.com/OJ/gobuster/v3@latest
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/vuln_scanner_web.git
-cd vuln_scanner_web
+git clone https://github.com/mohamedazizabdellaoui/vuln-scan.git
+cd vuln-scan
 
 # Install Python dependencies
 pip3 install -r requirements.txt

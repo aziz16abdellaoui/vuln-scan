@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
 Main Entry Point for Modular Vulnerability Scanner
+This file starts the web interface automatically
 Run with: python main.py or python3 main.py
-Directly starts the user-friendly web interface
+Author: Mohamed Aziz Abdellaoui
 """
 
+# Import needed libraries for the main program
 import os
 import sys
 import subprocess
@@ -12,7 +14,7 @@ import time
 from datetime import datetime
 
 def print_startup_banner():
-    """Display the startup banner"""
+    """Show a nice banner when program starts"""
     banner = """
 ╔══════════════════════════════════════════════════════════════════════╗
 ║                                                                      ║
@@ -25,32 +27,35 @@ def print_startup_banner():
     print(banner)
 
 def check_dependencies():
-    """Check if required dependencies are available"""
+    """Check if all required libraries and files are installed"""
     print("🔍 Checking dependencies...")
     
-    # Check Python modules
+    # List of Python libraries we need for the scanner
     python_deps = ['flask', 'requests', 'selenium']
     missing_python = []
     
+    # Check each Python library one by one
     for dep in python_deps:
         try:
-            __import__(dep)
+            __import__(dep)  # Try to import the library
             print(f"✓ Python: {dep}")
         except ImportError:
-            missing_python.append(dep)
+            missing_python.append(dep)  # Add to missing list if not found
             print(f"✗ Python: {dep}")
     
-    # Check project files
+    # Check if important project files exist
     required_files = ['app_modular.py', 'tools/nmap_scanner.py']
     missing_files = []
     
+    # Make sure all important files are in the project
     for file in required_files:
         if os.path.exists(file):
             print(f"✓ File: {file}")
         else:
-            missing_files.append(file)
+            missing_files.append(file)  # Add missing file to our list
             print(f"✗ File: {file}")
     
+    # If something is missing, show a warning message
     if missing_python or missing_files:
         print("\n⚠️  Missing dependencies detected!")
         if missing_python:
@@ -58,14 +63,14 @@ def check_dependencies():
         if missing_files:
             print(f"   Missing files: {', '.join(missing_files)}")
         print()
-        return False
+        return False  # Return error status
     else:
         print("✅ All dependencies are available!")
         print()
-        return True
+        return True  # Everything is ready to go
 
 def start_web_interface():
-    """Start the web interface"""
+    """Start the web interface and show user instructions"""
     print("🌐 Starting User-Friendly Web Interface...")
     print()
     print("📌 Once started:")
@@ -80,6 +85,7 @@ def start_web_interface():
     print("=" * 60)
     
     try:
+        # Run the Flask web application
         subprocess.run([sys.executable, "app_modular.py"])
     except KeyboardInterrupt:
         print("\n🛑 Web server stopped by user")
@@ -89,19 +95,20 @@ def start_web_interface():
         print("💡 Make sure you're in the correct directory")
 
 def main():
-    """Main function - directly start web interface"""
-    # Change to script directory
+    """Main function - this starts everything"""
+    # Change to the script directory so files can be found
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
     
-    # Clear screen (works on most terminals)
+    # Clear the terminal screen for better display
     os.system('clear' if os.name == 'posix' else 'cls')
     
-    print_startup_banner()
+    print_startup_banner()  # Show the welcome banner
     
-    # Check dependencies
+    # Check if all dependencies are installed
     deps_ok = check_dependencies()
     
+    # If dependencies are missing, exit with error message
     if not deps_ok:
         print("❌ Cannot start web interface - missing dependencies")
         print("\n💡 To install missing Python dependencies:")
@@ -109,8 +116,9 @@ def main():
         print("\n💡 For help, see: HOW_TO_RUN.md")
         sys.exit(1)
     
-    # Start web interface directly
+    # Start the web interface automatically
     start_web_interface()
 
+# This runs when the script is executed directly
 if __name__ == "__main__":
-    main()
+    main()  # Call the main function to start everything

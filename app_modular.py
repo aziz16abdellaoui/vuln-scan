@@ -1,49 +1,55 @@
 #!/usr/bin/env python3
 """
-New Flask Web Application using Modular Scanner Architecture
-This file integrates the modular scanner with a web interface
+Flask Web Application using Modular Scanner Architecture
+This file creates a web interface for the vulnerability scanner
+Users can run scans through their web browser
+Author: Mohamed Aziz Abdellaoui
 """
 
+# Import libraries we need for the web application
 import os
 import sys
 import threading
 from flask import Flask, render_template, request, jsonify, send_file
 
-# Add tools directory to path
+# Add tools directory to Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'tools'))
 
-# Import the main scanner
+# Import our main scanner class
 from main_scanner import VulnerabilityScanner
 
-app = Flask(__name__)
-scan_data = {}
+app = Flask(__name__)  # Create the Flask web application
+scan_data = {}         # Global variable to store scan progress data
 
 class WebVulnerabilityScanner:
     def __init__(self):
-        self.scanner = VulnerabilityScanner()
+        """Set up the web-based vulnerability scanner"""
+        self.scanner = VulnerabilityScanner()  # Create our scanner object
     
     def status_callback(self, target, message):
-        """Callback function to update scan status in real-time"""
+        """Update scan status messages in real-time for web interface"""
+        # If this is a new target, create an entry for it
         if target not in scan_data:
             scan_data[target] = {"status": [], "completed": False}
+        # Add the new status message to the list
         scan_data[target]["status"].append(message)
     
     def scan_target_web(self, target, wordlist_path=None):
-        """Run scan with web interface integration"""
+        """Run a complete scan and update web interface with progress"""
         try:
-            # Initialize scan data
+            # Set up initial scan data structure
             scan_data[target] = {
-                "status": [f"Starting comprehensive scan for {target}"],
-                "completed": False,
-                "results": {},
-                "error": None
+                "status": [f"Starting comprehensive scan for {target}"],  # First status message
+                "completed": False,  # Scan is not done yet
+                "results": {},       # Empty results to start
+                "error": None        # No errors yet
             }
             
-            # Create status callback for this target
+            # Create a function to update status for this specific target
             def status_update(message):
                 self.status_callback(target, message)
             
-            # Run the modular scan
+            # تشغيل الفحص المعياري - Run the modular scan
             results = self.scanner.scan_target(
                 target, 
                 wordlist_path, 

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 HTTP Security Analyzer Module
-Handles HTTP header analysis and basic vulnerability detection
+This module checks web applications for common security issues
+Looks at HTTP headers and page content for vulnerabilities
 """
 
 import requests
@@ -9,27 +10,28 @@ from datetime import datetime
 
 class HTTPAnalyzer:
     def __init__(self, timeout=8):
-        self.timeout = timeout
+        self.timeout = timeout  # How long to wait for web requests
     
     def analyze_headers(self, headers):
-        """Analyze HTTP headers for security issues"""
+        """Check HTTP headers for security problems"""
         vulnerabilities = []
         
-        # Check for information disclosure headers
+        # Look for headers that reveal too much information
         if 'X-Powered-By' in headers:
             vulnerabilities.append(f"X-Powered-By header exposes technology: {headers['X-Powered-By']}")
             
         if 'Server' in headers:
             vulnerabilities.append(f"Server header reveals information: {headers['Server']}")
         
-        # Check for missing security headers
+        # Check for important security headers that are missing
         security_headers = {
             'X-Frame-Options': "X-Frame-Options header missing - clickjacking vulnerability",
-            'X-Content-Type-Options': "X-Content-Type-Options header missing - MIME sniffing vulnerability",
+            'X-Content-Type-Options': "X-Content-Type-Options header missing - MIME sniffing vulnerability", 
             'Strict-Transport-Security': "HSTS header missing - protocol downgrade attacks possible",
             'Content-Security-Policy': "Content-Security-Policy header missing - XSS vulnerability"
         }
         
+        # Check each security header and report if missing
         for header, message in security_headers.items():
             if header not in headers:
                 vulnerabilities.append(message)
@@ -37,7 +39,7 @@ class HTTPAnalyzer:
         return vulnerabilities
     
     def analyze_content(self, content):
-        """Analyze page content for vulnerabilities"""
+        """Look through web page content for security issues"""
         vulnerabilities = []
         
         # Check for directory listing

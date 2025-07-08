@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 """
-Main Vulnerability Scanner
-Orchestrates all scanning tools and generates comprehensive reports
+Main Vulnerability Scanner - Command Line Interface
+This file controls all scanning tools and creates detailed reports
+Run with: python3 main_scanner.py <target>
+Author: Mohamed Aziz Abdellaoui
 """
 
+# Import basic libraries we need
 import os
 import sys
 import json
 import threading
 from datetime import datetime
 
-# Add tools directory to path
+# Add tools directory to Python path so we can import our modules
 sys.path.append(os.path.join(os.path.dirname(__file__), 'tools'))
 
-# Import all scanner modules
+# Import all our scanning modules
 from nmap_scanner import NmapScanner
 from subfinder_scanner import SubfinderScanner
 from gobuster_scanner import GobusterScanner
@@ -25,17 +28,20 @@ from vulnerability_scorer import VulnerabilityScorer
 
 class VulnerabilityScanner:
     def __init__(self):
+        """Set up all the scanning tools we will use"""
+        # Dictionary with all our scanning tools
         self.scanners = {
-            'nmap': NmapScanner(),
-            'subfinder': SubfinderScanner(),
-            'gobuster': GobusterScanner(),
-            'email_crawler': EmailCrawler(),
-            'pwned_checker': PwnedChecker(),
-            'nuclei': NucleiScanner(),
-            'http_analyzer': HTTPAnalyzer(),
-            'scorer': VulnerabilityScorer()
+            'nmap': NmapScanner(),           # Scans network ports
+            'subfinder': SubfinderScanner(), # Finds subdomains  
+            'gobuster': GobusterScanner(),   # Finds hidden directories
+            'email_crawler': EmailCrawler(), # Finds email addresses
+            'pwned_checker': PwnedChecker(), # Checks for data breaches
+            'nuclei': NucleiScanner(),       # Finds security vulnerabilities
+            'http_analyzer': HTTPAnalyzer(), # Analyzes web security headers
+            'scorer': VulnerabilityScorer()  # Gives security score
         }
         
+        # Security recommendation templates
         self.recommendation_patterns = [
             {"keywords": ["x-powered-by"], "recommendation": "Remove or obfuscate the 'X-Powered-By' header."},
             {"keywords": ["x-frame-options"], "recommendation": "Add 'X-Frame-Options' header."},
@@ -59,39 +65,47 @@ class VulnerabilityScanner:
         ]
     
     def get_recommendations(self, vulnerabilities):
-        """Generate recommendations based on vulnerabilities found"""
-        recommendations = set()
+        """توليد التوصيات بناءً على الثغرات المكتشفة - Generate recommendations based on vulnerabilities found"""
+        recommendations = set()  # مجموعة لتجنب التكرار - Set to avoid duplicates
+        
+        # تكرار عبر كل ثغرة مكتشفة - Loop through each discovered vulnerability
         for vuln in vulnerabilities:
+            # البحث عن أنماط مطابقة في قائمة التوصيات - Search for matching patterns in recommendations list
             for pattern in self.recommendation_patterns:
                 if any(keyword in vuln.lower() for keyword in pattern["keywords"]):
                     recommendations.add(pattern["recommendation"])
-        return list(recommendations)
+        return list(recommendations)  # إرجاع القائمة - Return the list
     
     def analyze_manual_vulnerabilities(self, gobuster_results):
-        """Analyze gobuster results for sensitive paths"""
-        manual_vulns = []
+        """تحليل نتائج gobuster للبحث عن مسارات حساسة - Analyze gobuster results for sensitive paths"""
+        manual_vulns = []  # قائمة الثغرات اليدوية - Manual vulnerabilities list
+        
+        # مسارات حساسة يجب البحث عنها - Sensitive paths to look for
         sensitive_paths = [".svn", ".htaccess", ".htpasswd", "server-status"]
         
+        # البحث في المجلدات المكتشفة - Search through discovered directories
         for line in gobuster_results.get("directories", []):
             if any(path in line for path in sensitive_paths):
                 manual_vulns.append(f"Sensitive path found: {line}")
         
-        return manual_vulns
+        return manual_vulns  # إرجاع الثغرات المكتشفة - Return discovered vulnerabilities
     
     def scan_target(self, target, wordlist_path=None, status_callback=None):
         """
-        Run comprehensive vulnerability scan on target
-        Returns complete scan results
+        تشغيل فحص شامل للهدف - Run comprehensive vulnerability scan on target
+        إرجاع نتائج الفحص الكاملة - Returns complete scan results
         """
         def update_status(message):
+            """تحديث حالة الفحص - Update scan status"""
             if status_callback:
-                status_callback(message)
+                status_callback(message)  # استدعاء دالة التحديث إذا متوفرة - Call update function if available
             print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
         
+        # بداية الفحص - Scan start
         scan_start = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         update_status(f"Starting comprehensive scan for {target}")
         
-        # Initialize results structure
+        # إعداد هيكل النتائج - Initialize results structure
         results = {
             "target": target,
             "start_time": scan_start,

@@ -6,14 +6,39 @@ Users can run scans through their web browser
 Author: Mohamed Aziz Abdellaoui
 """
 
-# Import libraries we need for the web application
+# Import libraries we need for the web interface
 import os
+import json
 import sys
+import socket
+import time
 import threading
+from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_file
 
-# Add tools directory to Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'tools'))
+# Add the main directory to Python path so we can import our tools
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+def print_startup_info(port):
+    """Print startup information to console"""
+    print("🚀 Starting Modular Vulnerability Scanner Web Interface")
+    print("📁 Using tools from: tools/")
+    
+    if port != 5000:
+        print(f"ℹ️  Using port {port} (5000 was occupied)")
+    
+    print("=" * 60)
+    print(f"🌐 WEB INTERFACE READY!")
+    print(f"🔗 Open your browser and go to: http://localhost:{port}")
+    print(f"🔗 Or use this URL: http://127.0.0.1:{port}")
+    print("=" * 60)
+    print("📋 Instructions:")
+    print("   1. Open the URL above in your browser")
+    print("   2. Enter a target domain (e.g., scanme.nmap.org)")
+    print("   3. Click 'Start Scan' and watch the progress")
+    print("   4. Download reports when scan completes")
+    print("🛑 Press Ctrl+C here to stop the server")
+    print("=" * 60)
 
 # Import our main scanner class
 from main_scanner import VulnerabilityScanner
@@ -42,7 +67,8 @@ class WebVulnerabilityScanner:
                 "status": [f"Starting comprehensive scan for {target}"],  # First status message
                 "completed": False,  # Scan is not done yet
                 "results": {},       # Empty results to start
-                "error": None        # No errors yet
+                "error": None,       # No errors yet
+                "start_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Track start time
             }
             
             # Create a function to update status for this specific target
@@ -56,9 +82,10 @@ class WebVulnerabilityScanner:
                 status_callback=status_update
             )
             
-            # Update scan data with results
+            # Update scan data with results and completion time
             scan_data[target].update({
                 "completed": True,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Add completion timestamp
                 "results": results,
                 "vulnerabilities": results["vulnerabilities"],
                 "score": results["score"],
@@ -71,12 +98,15 @@ class WebVulnerabilityScanner:
             # Save results
             self.scanner.save_results(results)
             
-            scan_data[target]["status"].append("✅ Scan completed successfully!")
+            # Add completion message with timestamp
+            completion_time = scan_data[target]["timestamp"]
+            scan_data[target]["status"].append(f"✅ Scan completed successfully at {completion_time}!")
             
         except Exception as e:
             scan_data[target]["error"] = str(e)
             scan_data[target]["status"].append(f"❌ Scan failed: {e}")
             scan_data[target]["completed"] = True
+            scan_data[target]["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # Initialize the web scanner
 web_scanner = WebVulnerabilityScanner()
@@ -133,7 +163,9 @@ def scan_status(target):
         "grouped": data.get("grouped", {"high": [], "medium": [], "low": [], "info": []}),
         "recommendations": data.get("recommendations", []),
         "results": data.get("results", {}),
-        "module_results": data.get("module_results", {})
+        "module_results": data.get("module_results", {}),
+        "timestamp": data.get("timestamp"),  # Include completion timestamp
+        "start_time": data.get("start_time")  # Include start time
     }
     
     return jsonify(response)
@@ -275,7 +307,7 @@ if __name__ == "__main__":
         print(f"ℹ️  Using port {port} (5000 was occupied)")
     
     try:
-        app.run(debug=True, port=port, host='0.0.0.0')
+        app.run(debug=False, port=port, host='0.0.0.0', use_reloader=False)
     except KeyboardInterrupt:
         print("\n🛑 Server stopped by user")
     except Exception as e:

@@ -75,7 +75,7 @@ def start_web_interface():
     print()
     print("📌 Once started:")
     print("   🌐 Open your browser")
-    print("   🔗 Go to: http://localhost:5000")
+    print("   🔗 Go to: http://localhost:5000 (or check the port shown below)")
     print("   🎯 Enter a target domain (e.g., scanme.nmap.org)")
     print("   ▶️  Click 'Start Scan'")
     print("   📊 Watch real-time progress")
@@ -93,6 +93,9 @@ def start_web_interface():
     except FileNotFoundError:
         print("❌ Error: app_modular.py not found")
         print("💡 Make sure you're in the correct directory")
+    except Exception as e:
+        print(f"❌ Error starting web interface: {e}")
+        print("💡 Try running directly: python3 app_modular.py")
 
 def main():
     """Main function - this starts everything"""

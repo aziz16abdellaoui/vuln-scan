@@ -247,7 +247,37 @@ def scan_alive(target):
     return jsonify({"alive": True, "reason": "unknown"})
 
 if __name__ == "__main__":
-    print("🚀 Starting Modular Vulnerability Scanner Web Interface")
+    import socket
+    
+    def find_free_port(start_port=5000, max_attempts=10):
+        """Find a free port starting from start_port"""
+        for port in range(start_port, start_port + max_attempts):
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind(('localhost', port))
+                    return port
+            except OSError:
+                continue
+        return None
+    
+    # Find available port
+    port = find_free_port()
+    if not port:
+        print("❌ Could not find an available port between 5000-5010")
+        print("� Please close other applications using these ports and try again")
+        exit(1)
+    
+    print("�🚀 Starting Modular Vulnerability Scanner Web Interface")
     print("📁 Using tools from: tools/")
-    print("🌐 Access at: http://localhost:5000")
-    app.run(debug=True)
+    print(f"🌐 Access at: http://localhost:{port}")
+    
+    if port != 5000:
+        print(f"ℹ️  Using port {port} (5000 was occupied)")
+    
+    try:
+        app.run(debug=True, port=port, host='0.0.0.0')
+    except KeyboardInterrupt:
+        print("\n🛑 Server stopped by user")
+    except Exception as e:
+        print(f"❌ Server error: {e}")
+        print("💡 Try running with: python3 app_modular.py")

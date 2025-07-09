@@ -241,11 +241,13 @@
                     updateScanResults(data);
                     
                     // Check if scan is completed
-                    if (data.status && data.status.some(status => 
-                        status.includes('Comprehensive scan completed!') || 
-                        status.includes('All tasks finished') ||
-                        status.includes('JSON reports saved')
-                    )) {
+                    if (data.completed || 
+                        (data.status && data.status.some(status => 
+                            status.includes('✅ Scan completed successfully!') || 
+                            status.includes('Scan completed!') ||
+                            status.includes('Found') && status.includes('total vulnerabilities') ||
+                            status.includes('Security Score:')
+                        ))) {
                         clearInterval(scanInterval);
                         document.getElementById('scanProgress').style.display = 'none';
                         finalScanData = data;

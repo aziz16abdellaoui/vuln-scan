@@ -77,50 +77,82 @@
 
       if (!resp.ok) return alert("Failed to start scan");
 
-      const steps = ["Nmap", "Gobuster", "SpiderFoot"];
+      const steps = ["Nmap", "Subfinder", "Email", "HTTP", "Nuclei"];
       let done = false;
-      while (!done) {
-        const r = await fetch(`/scan_status/${target}`);
-        const data = await r.json();
-        if (!data.status || data.status.length === 0) return;
-
-        const completedSteps = steps.filter(s => data.status.some(line => line.includes(`${s} completed`)));
-        const progress = Math.round((completedSteps.length / steps.length) * 100);
-        progressBar.value = progress;
-
-        if (data.status[data.status.length - 1].toLowerCase().includes("scan completed")) {
-          done = true;
-          progressBar.value = 100;
-          setTimeout(() => progressBar.style.display = "none", 2000);
-
-          vulnSection.style.display = "block";
-
-          for (const v of data.grouped.high || []) {
-            const li = document.createElement("li");
-            li.textContent = v;
-            vulnHigh.appendChild(li);
+      let pollCount = 0;
+      const maxPolls = 90; // 3 minutes with 2-second intervals
+      
+      while (!done && pollCount < maxPolls) {
+        try {
+          const r = await fetch(`/scan_status/${target}`);
+          if (!r.ok) {
+            console.error("Failed to fetch scan status");
+            break;
           }
-          for (const v of data.grouped.medium || []) {
-            const li = document.createElement("li");
-            li.textContent = v;
-            vulnMedium.appendChild(li);
-          }
-          for (const v of data.grouped.low || []) {
-            const li = document.createElement("li");
-            li.textContent = v;
-            vulnLow.appendChild(li);
-          }
-          for (const v of data.grouped.info || []) {
-            const li = document.createElement("li");
-            li.textContent = v;
-            vulnInfo.appendChild(li);
+          
+          const data = await r.json();
+          if (!data.status || data.status.length === 0) {
+            pollCount++;
+            await new Promise(r => setTimeout(r, 2000));
+            continue;
           }
 
-          reportBtn.style.display = "inline-block";
-          reportBtn.onclick = () => window.open(`/report/${target}`, "_blank");
+          const completedSteps = steps.filter(s => 
+            data.status.some(line => line.includes(`${s} completed`) || line.includes(`${s} scan`))
+          );
+          const progress = Math.round((completedSteps.length / steps.length) * 100);
+          progressBar.value = Math.max(progress, 10); // Ensure some progress is shown
+
+          // Check for completion
+          if (data.completed || 
+              data.status.some(line => line.toLowerCase().includes("scan completed")) ||
+              data.status.some(line => line.toLowerCase().includes("✅")) ||
+              data.vulnerabilities && data.vulnerabilities.length > 0) {
+            done = true;
+            progressBar.value = 100;
+            setTimeout(() => progressBar.style.display = "none", 2000);
+
+            vulnSection.style.display = "block";
+
+            // Display vulnerabilities
+            for (const v of data.grouped?.high || []) {
+              const li = document.createElement("li");
+              li.textContent = v;
+              vulnHigh.appendChild(li);
+            }
+            for (const v of data.grouped?.medium || []) {
+              const li = document.createElement("li");
+              li.textContent = v;
+              vulnMedium.appendChild(li);
+            }
+            for (const v of data.grouped?.low || []) {
+              const li = document.createElement("li");
+              li.textContent = v;
+              vulnLow.appendChild(li);
+            }
+            for (const v of data.grouped?.info || []) {
+              const li = document.createElement("li");
+              li.textContent = v;
+              vulnInfo.appendChild(li);
+            }
+
+            reportBtn.style.display = "inline-block";
+            reportBtn.onclick = () => window.open(`/download_report/${target}`, "_blank");
+          }
+        } catch (error) {
+          console.error("Error polling scan status:", error);
         }
 
-        if (!done) await new Promise(r => setTimeout(r, 2000));
+        if (!done) {
+          pollCount++;
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      }
+      
+      // Handle timeout
+      if (!done && pollCount >= maxPolls) {
+        alert("Scan is taking longer than expected. Please check the console or try again.");
+        progressBar.style.display = "none";
       }
     });
   </script>

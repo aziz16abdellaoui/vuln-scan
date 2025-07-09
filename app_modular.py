@@ -228,6 +228,24 @@ def test_modules():
     
     return jsonify(test_results)
 
+@app.route("/scan_alive/<target>")
+def scan_alive(target):
+    """Check if scan is still actively running"""
+    if target not in scan_data:
+        return jsonify({"alive": False, "reason": "no_scan_data"}), 404
+    
+    data = scan_data[target]
+    
+    # Check if scan completed
+    if data.get("completed", False):
+        return jsonify({"alive": False, "reason": "completed"})
+    
+    # Check if scan has recent activity (within last 30 seconds)
+    if data.get("status"):
+        return jsonify({"alive": True, "reason": "active", "status_count": len(data["status"])})
+    
+    return jsonify({"alive": True, "reason": "unknown"})
+
 if __name__ == "__main__":
     print("🚀 Starting Modular Vulnerability Scanner Web Interface")
     print("📁 Using tools from: tools/")

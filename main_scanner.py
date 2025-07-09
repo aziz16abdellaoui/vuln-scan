@@ -155,7 +155,7 @@ class VulnerabilityScanner:
         http_results = self.scanners['http_analyzer'].analyze(target)
         results["module_results"]["http_analyzer"] = http_results
         update_status(f"HTTP analysis completed: {http_results['count']} issues found")
-        
+
         # 7. Nuclei scan with enhanced status reporting
         update_status("🎯 Starting advanced Nuclei vulnerability scan...")
         update_status("⚙️ Nuclei will scan for CVEs, exploits, and misconfigurations...")

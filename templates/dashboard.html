@@ -176,7 +176,7 @@
         let scanInterval;
         let pollCount = 0;
         let finalScanData = null;
-        const MAX_POLL_COUNT = 120; // Stop after 2 minutes of polling
+        const MAX_POLL_COUNT = 300; // Stop after 5 minutes of polling (300 * 1s intervals)
 
         document.getElementById('scanForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -224,7 +224,7 @@
                 if (pollCount > MAX_POLL_COUNT) {
                     clearInterval(scanInterval);
                     document.getElementById('scanProgress').style.display = 'none';
-                    showStatus('Scan timeout - stopped polling after 2 minutes', 'error');
+                    showStatus('Scan timeout - stopped polling after 5 minutes. Check console or try again.', 'error');
                     return;
                 }
                 

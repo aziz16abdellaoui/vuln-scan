@@ -156,11 +156,57 @@ class VulnerabilityScanner:
         results["module_results"]["http_analyzer"] = http_results
         update_status(f"HTTP analysis completed: {http_results['count']} issues found")
         
-        # 7. Nuclei scan
-        update_status("Running Nuclei CVE/exploit detection...")
+        # 7. Nuclei scan with enhanced status reporting
+        update_status("🎯 Starting advanced Nuclei vulnerability scan...")
+        update_status("⚙️ Nuclei will scan for CVEs, exploits, and misconfigurations...")
+        
+        # Run Nuclei scan with Nmap results for context
         nuclei_results = self.scanners['nuclei'].scan(target, nmap_results["raw_output"])
         results["module_results"]["nuclei"] = nuclei_results
-        update_status(f"Nuclei completed: {nuclei_results['count']} findings ({nuclei_results['cve_count']} CVEs)")
+        
+        # Provide detailed status based on Nuclei results
+        if nuclei_results['status'] == "completed":
+            update_status("✅ Nuclei scan completed successfully!")
+            update_status(f"📊 Vulnerabilities found: {nuclei_results['count']}")
+            update_status(f"🚨 CVEs detected: {nuclei_results['cve_count']}")
+            update_status(f"💥 Exploitable issues: {nuclei_results['exploit_count']}")
+            if nuclei_results.get('phases_completed') and nuclei_results.get('total_phases'):
+                update_status(f"⚡ Scan phases: {nuclei_results['phases_completed']}/{nuclei_results['total_phases']} completed")
+        elif nuclei_results['status'] == "partial":
+            update_status("⚠️ Nuclei scan partially completed")
+            update_status(f"📊 Partial results: {nuclei_results['count']} vulnerabilities found")
+            if nuclei_results.get('phases_completed') and nuclei_results.get('total_phases'):
+                update_status(f"⚡ Phases completed: {nuclei_results['phases_completed']}/{nuclei_results['total_phases']}")
+        elif nuclei_results['status'] == "timeout":
+            update_status("⏱️ Nuclei scan timed out - partial results available")
+            update_status(f"📊 Found {nuclei_results['count']} vulnerabilities before timeout")
+        elif nuclei_results['status'] == "not_found":
+            update_status("❌ Nuclei not found - vulnerability scan skipped")
+            update_status("💡 Install Nuclei for advanced vulnerability detection")
+        elif nuclei_results['status'] == "error":
+            update_status("⚠️ Nuclei scan encountered errors")
+            update_status(f"📊 Partial results: {nuclei_results['count']} vulnerabilities found")
+        else:
+            update_status(f"Nuclei scan status: {nuclei_results['status']}")
+            
+        # Show key findings if any were discovered
+        if nuclei_results['count'] > 0:
+            high_severity_count = sum(1 for f in nuclei_results['findings'] 
+                                    if f.get('severity') in ['critical', 'high'])
+            if high_severity_count > 0:
+                update_status(f"🔴 High/Critical findings: {high_severity_count}")
+            
+            # Show top 3 most critical findings
+            sorted_findings = sorted(nuclei_results['findings'], 
+                                   key=lambda x: {'critical': 0, 'high': 1, 'medium': 2, 'low': 3, 'info': 4}.get(x.get('severity', 'info'), 4))
+            top_findings = sorted_findings[:3]
+            if top_findings:
+                update_status("🔍 Top vulnerabilities:")
+                for i, finding in enumerate(top_findings, 1):
+                    severity_emoji = {'critical': '🔴', 'high': '🟠', 'medium': '🟡', 'low': '🔵', 'info': '⚪'}.get(finding.get('severity', 'info'), '⚪')
+                    update_status(f"   {i}. {severity_emoji} {finding.get('name', 'Unknown vulnerability')}")
+        else:
+            update_status("✅ No critical vulnerabilities detected by Nuclei")
         
         # Compile all vulnerabilities
         all_vulnerabilities = []

@@ -20,7 +20,7 @@ def print_startup_banner():
 ║                                                                      ║
 ║    🔥 MODULAR VULNERABILITY SCANNER 🔥                               ║
 ║                                                                      ║
-║    Starting User-Friendly Web Interface...                          ║
+║    Starting User-Friendly Web Interface...                           ║
 ║                                                                      ║
 ╚══════════════════════════════════════════════════════════════════════╝
 """

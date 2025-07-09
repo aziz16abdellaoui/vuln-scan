@@ -50,7 +50,6 @@
 
 ### Step 2: Push Local Repository
 ```bash
-# Replace with your actual GitHub username if different
 git remote add origin https://github.com/mohamedazizabdellaoui/vuln-scan.git
 git push -u origin main
 ```

@@ -90,7 +90,41 @@ class VulnerabilityScanner:
         
         return manual_vulns  # إرجاع الثغرات المكتشفة - Return discovered vulnerabilities
     
-    def scan_target(self, target, wordlist_path=None, status_callback=None):
+    def _get_profile_config(self, profile):
+        """Get configuration for the selected scan profile"""
+        profiles = {
+            'quick': {
+                'description': 'Fast scan for basic vulnerabilities (30-60s)',
+                'enable_subfinder': True,
+                'enable_gobuster': False,  # Skip for speed
+                'enable_email_crawler': False,  # Skip for speed
+                'enable_pwned_checker': False,  # Skip for speed
+                'nuclei_timeout': 30,
+                'nuclei_phases': ['Essential Security Checks']
+            },
+            'standard': {
+                'description': 'Balanced scan with good coverage (90-120s)',
+                'enable_subfinder': True,
+                'enable_gobuster': True,
+                'enable_email_crawler': True,
+                'enable_pwned_checker': True,
+                'nuclei_timeout': 45,
+                'nuclei_phases': ['Essential Security Checks', 'Technology Detection', 'Critical CVEs']
+            },
+            'comprehensive': {
+                'description': 'Deep scan with maximum coverage (3-5min)',
+                'enable_subfinder': True,
+                'enable_gobuster': True,
+                'enable_email_crawler': True,
+                'enable_pwned_checker': True,
+                'nuclei_timeout': 90,
+                'nuclei_phases': ['Essential Security Checks', 'Technology Detection', 'Critical CVEs', 'Service-Specific']
+            }
+        }
+        
+        return profiles.get(profile, profiles['standard'])  # Default to standard if unknown profile
+    
+    def scan_target(self, target, wordlist_path=None, status_callback=None, profile="standard"):
         """
         تشغيل فحص شامل للهدف - Run comprehensive vulnerability scan on target
         إرجاع نتائج الفحص الكاملة - Returns complete scan results
@@ -103,12 +137,17 @@ class VulnerabilityScanner:
         
         # بداية الفحص - Scan start
         scan_start = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        update_status(f"Starting comprehensive scan for {target}")
+        update_status(f"Starting {profile} scan for {target}")
+        
+        # Get profile configuration
+        profile_config = self._get_profile_config(profile)
+        update_status(f"Using {profile} profile: {profile_config.get('description', 'Custom configuration')}")
         
         # إعداد هيكل النتائج - Initialize results structure
         results = {
             "target": target,
             "start_time": scan_start,
+            "profile": profile,
             "status": [],
             "module_results": {},
             "vulnerabilities": [],
@@ -117,51 +156,76 @@ class VulnerabilityScanner:
             "grade": "F"
         }
         
-        # 1. Nmap scan
+        # 1. Nmap scan (always runs - needed for service detection)
         update_status("Running Nmap port scan...")
         nmap_results = self.scanners['nmap'].scan(target)
         results["module_results"]["nmap"] = nmap_results
         update_status(f"Nmap completed: {nmap_results['ports_found']} ports found")
         
-        # 2. Subfinder scan
-        update_status("Running subdomain enumeration...")
-        subfinder_results = self.scanners['subfinder'].scan(target)
-        results["module_results"]["subfinder"] = subfinder_results
-        update_status(f"Subfinder completed: {subfinder_results['count']} subdomains found")
-        
-        # 3. Gobuster scan (directory discovery)
-        update_status("Running directory scan...")
-        gobuster_results = self.scanners['gobuster'].scan(target, wordlist_path)
-        results["module_results"]["gobuster"] = gobuster_results
-        if gobuster_results["status"] == "skipped":
-            update_status("Directory scan skipped - Gobuster not available or wordlist issues")
+        # 2. Subfinder scan (profile-dependent)
+        if profile_config.get('enable_subfinder', True):
+            update_status("Running subdomain enumeration...")
+            subfinder_results = self.scanners['subfinder'].scan(target)
+            results["module_results"]["subfinder"] = subfinder_results
+            update_status(f"Subfinder completed: {subfinder_results['count']} subdomains found")
         else:
-            update_status(f"Directory scan completed: {gobuster_results['count']} directories found")
+            update_status("Skipping subdomain enumeration (profile setting)")
+            results["module_results"]["subfinder"] = {"count": 0, "status": "skipped", "subdomains": []}
         
-        # 4. Email crawling
-        update_status("Crawling for email addresses...")
-        email_results = self.scanners['email_crawler'].crawl(target)
-        results["module_results"]["email_crawler"] = email_results
-        update_status(f"Email crawl completed: {email_results['count']} emails found")
+        # 3. Gobuster scan (directory discovery) - profile-dependent
+        if profile_config.get('enable_gobuster', True):
+            update_status("Running directory scan...")
+            gobuster_results = self.scanners['gobuster'].scan(target, wordlist_path)
+            results["module_results"]["gobuster"] = gobuster_results
+            if gobuster_results["status"] == "skipped":
+                update_status("Directory scan skipped - Gobuster not available or wordlist issues")
+            else:
+                update_status(f"Directory scan completed: {gobuster_results['count']} directories found")
+        else:
+            update_status("Skipping directory scan (profile setting)")
+            results["module_results"]["gobuster"] = {"count": 0, "status": "skipped", "directories": []}
         
-        # 5. Pwned email check
-        update_status("Checking emails for data breaches...")
-        pwned_results = self.scanners['pwned_checker'].check_emails(email_results["emails_found"])
-        results["module_results"]["pwned_checker"] = pwned_results
-        update_status(f"Breach check completed: {pwned_results['count']} pwned emails found")
+        # 4. Email crawling (profile-dependent)
+        if profile_config.get('enable_email_crawler', True):
+            update_status("Crawling for email addresses...")
+            email_results = self.scanners['email_crawler'].crawl(target)
+            results["module_results"]["email_crawler"] = email_results
+            update_status(f"Email crawl completed: {email_results['count']} emails found")
+        else:
+            update_status("Skipping email crawling (profile setting)")
+            email_results = {"count": 0, "emails_found": [], "status": "skipped"}
+            results["module_results"]["email_crawler"] = email_results
         
-        # 6. HTTP security analysis
+        # 5. Pwned email check (profile-dependent)
+        if profile_config.get('enable_pwned_checker', True) and email_results.get('emails_found'):
+            update_status("Checking emails for data breaches...")
+            pwned_results = self.scanners['pwned_checker'].check_emails(email_results["emails_found"])
+            results["module_results"]["pwned_checker"] = pwned_results
+            update_status(f"Breach check completed: {pwned_results['count']} pwned emails found")
+        else:
+            update_status("Skipping breach check (profile setting or no emails found)")
+            results["module_results"]["pwned_checker"] = {"count": 0, "pwned_emails": [], "status": "skipped"}
+        
+        # 6. HTTP security analysis (always runs)
         update_status("Analyzing HTTP security...")
         http_results = self.scanners['http_analyzer'].analyze(target)
         results["module_results"]["http_analyzer"] = http_results
         update_status(f"HTTP analysis completed: {http_results['count']} issues found")
 
-        # 7. Nuclei scan with enhanced status reporting
+        # 7. Nuclei scan with enhanced status reporting and profile-based timeout
+        nuclei_timeout = profile_config.get('nuclei_timeout', 45)
         update_status("🎯 Starting advanced Nuclei vulnerability scan...")
-        update_status("⚙️ Nuclei will scan for CVEs, exploits, and misconfigurations...")
+        update_status(f"⚙️ Using {profile} profile with {nuclei_timeout}s timeout...")
+        
+        # Temporarily update nuclei scanner timeout for this scan
+        original_timeout = self.scanners['nuclei'].timeout
+        self.scanners['nuclei'].timeout = nuclei_timeout
         
         # Run Nuclei scan with Nmap results for context
         nuclei_results = self.scanners['nuclei'].scan(target, nmap_results["raw_output"])
+        
+        # Restore original timeout
+        self.scanners['nuclei'].timeout = original_timeout
         results["module_results"]["nuclei"] = nuclei_results
         
         # Provide detailed status based on Nuclei results
@@ -220,12 +284,14 @@ class VulnerabilityScanner:
             all_vulnerabilities.append(vuln_entry)
         
         # Add pwned email vulnerabilities
-        for email in pwned_results["pwned_emails"]:
-            all_vulnerabilities.append(f"Email {email} found in data breach (pwned)")
+        if 'pwned_checker' in results["module_results"] and results["module_results"]["pwned_checker"].get("pwned_emails"):
+            for email in results["module_results"]["pwned_checker"]["pwned_emails"]:
+                all_vulnerabilities.append(f"Email {email} found in data breach (pwned)")
         
-        # Add manual vulnerabilities from gobuster
-        manual_vulns = self.analyze_manual_vulnerabilities(gobuster_results)
-        all_vulnerabilities.extend(manual_vulns)
+        # Add manual vulnerabilities from gobuster (if gobuster was run)
+        if 'gobuster' in results["module_results"] and results["module_results"]["gobuster"]["status"] != "skipped":
+            manual_vulns = self.analyze_manual_vulnerabilities(results["module_results"]["gobuster"])
+            all_vulnerabilities.extend(manual_vulns)
         
         results["vulnerabilities"] = all_vulnerabilities
         

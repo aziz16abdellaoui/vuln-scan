@@ -127,13 +127,23 @@ def main():
     elif len(sys.argv) >= 3 and sys.argv[1] == "cli":
         # CLI mode: run scan on command line
         target = sys.argv[2]
+        profile = sys.argv[3] if len(sys.argv) > 3 else "standard"
+        
+        # Validate profile
+        valid_profiles = ["quick", "standard", "comprehensive"]
+        if profile not in valid_profiles:
+            print(f"❌ Invalid profile '{profile}'. Valid options: {', '.join(valid_profiles)}")
+            print("   Using 'standard' profile instead.")
+            profile = "standard"
+        
         print(f"🎯 Starting CLI scan of: {target}")
+        print(f"📊 Profile: {profile}")
         print("=" * 60)
         
         # Import and run the main scanner
         from main_scanner import VulnerabilityScanner
         scanner = VulnerabilityScanner()
-        scanner.scan_target(target)
+        scanner.scan_target(target, profile=profile)
         
         print("=" * 60)
         print("✅ Scan completed! Check scan_results/ directory for reports.")
@@ -141,12 +151,19 @@ def main():
         # Invalid arguments: show usage
         print("❌ Invalid arguments")
         print("\nUsage:")
-        print("  python main.py              # Start web interface")
-        print("  python main.py web          # Start web interface")
-        print("  python main.py cli <target> # Run CLI scan")
+        print("  python main.py                     # Start web interface")
+        print("  python main.py web                 # Start web interface")
+        print("  python main.py cli <target>        # Run CLI scan (standard profile)")
+        print("  python main.py cli <target> <profile> # Run CLI scan with specific profile")
+        print("\nProfiles:")
+        print("  quick        - Fast scan (30-60s) - Basic vulnerabilities only")
+        print("  standard     - Balanced scan (90-120s) - Good coverage (default)")
+        print("  comprehensive - Deep scan (3-5min) - Maximum coverage")
         print("\nExamples:")
         print("  python main.py web")
         print("  python main.py cli scanme.nmap.org")
+        print("  python main.py cli scanme.nmap.org quick")
+        print("  python main.py cli example.com comprehensive")
         sys.exit(1)
 
 # This runs when the script is executed directly

@@ -109,9 +109,26 @@
             <h2>Start New Scan</h2>
             <form id="scanForm">
                 <div class="form-group">
-                    <label for="target">Target Domain/IP:</label>
+                    <label for="target">Target Domain or IP Address:</label>
                     <input type="text" id="target" name="target" placeholder="example.com or 192.168.1.1" required>
+                    <small style="color: #666; margin-top: 5px; display: block;">
+                        💡 Examples: scanme.nmap.org, testphp.vulnweb.com, your-website.com
+                    </small>
                 </div>
+
+                <!-- Scan Profile Selection -->
+                <div class="form-group">
+                    <label for="profile">Scan Profile:</label>
+                    <select id="profile" name="profile" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                        <option value="quick">🚀 Quick Scan (~30-60s) - Basic vulnerabilities</option>
+                        <option value="standard" selected>⚖️ Standard Scan (~90-120s) - Balanced coverage</option>
+                        <option value="comprehensive">🔍 Comprehensive Scan (~3-5min) - Deep analysis</option>
+                    </select>
+                    <small style="color: #666; margin-top: 5px; display: block;">
+                        📊 Choose scan depth vs speed trade-off
+                    </small>
+                </div>
+
                 <button type="submit" class="btn">🚀 Start Comprehensive Scan</button>
                 <p style="margin-top: 10px; color: #666; font-size: 14px;">
                     <strong>📁 Directory Scanning:</strong> Gobuster will automatically scan for hidden directories and files using our built-in wordlist.
@@ -174,7 +191,7 @@
         let currentTarget = '';
         let scanInterval;
         let pollCount = 0;
-        let finalScanData = null;
+        let finalScanData
         const MAX_POLL_COUNT = 300; // Stop after 5 minutes of polling (300 * 1s intervals)
 
         document.getElementById('scanForm').addEventListener('submit', async function(e) {
@@ -297,6 +314,12 @@
                     <div class="stat-number">${nucleiCount}</div>
                     <div class="stat-label">Nuclei Findings</div>
                     <div class="stat-sublabel">${cveCount} CVEs</div>
+                </div>
+                <!-- Performance Metrics -->
+                <div class="stat-card" id="performance-card" style="display: none;">
+                    <div class="stat-number" id="scan-duration">0s</div>
+                    <div class="stat-label">Scan Duration</div>
+                    <div class="stat-sublabel" id="efficiency-score">-</div>
                 </div>
             `;
             

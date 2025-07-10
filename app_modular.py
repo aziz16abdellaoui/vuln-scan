@@ -59,27 +59,29 @@ class WebVulnerabilityScanner:
         # Add the new status message to the list
         scan_data[target]["status"].append(message)
     
-    def scan_target_web(self, target, wordlist_path=None):
+    def scan_target_web(self, target, wordlist_path=None, profile="standard"):
         """Run a complete scan and update web interface with progress"""
         try:
             # Set up initial scan data structure
             scan_data[target] = {
-                "status": [f"Starting comprehensive scan for {target}"],  # First status message
+                "status": [f"Starting {profile} scan for {target}"],  # Include profile in message
                 "completed": False,  # Scan is not done yet
                 "results": {},       # Empty results to start
                 "error": None,       # No errors yet
-                "start_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Track start time
+                "start_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Track start time
+                "profile": profile   # Store the selected profile
             }
             
             # Create a function to update status for this specific target
             def status_update(message):
                 self.status_callback(target, message)
             
-            # تشغيل الفحص المعياري - Run the modular scan
+            # تشغيل الفحص المعياري - Run the modular scan with profile
             results = self.scanner.scan_target(
                 target, 
                 wordlist_path, 
-                status_callback=status_update
+                status_callback=status_update,
+                profile=profile  # Pass the profile to the scanner
             )
             
             # Update scan data with results and completion time
@@ -120,22 +122,28 @@ def index():
 def start_scan():
     """Start a new vulnerability scan"""
     target = request.form.get("target", "").strip()
+    profile = request.form.get("profile", "standard").strip()
 
     if not target:
         return jsonify({"error": "No target provided"}), 400
+    
+    # Validate profile
+    valid_profiles = ["quick", "standard", "comprehensive"]
+    if profile not in valid_profiles:
+        profile = "standard"
     
     # Clear any existing scan data for this target
     if target in scan_data:
         scan_data.pop(target)
 
-    # Start scan in background thread - Gobuster will use default wordlist
+    # Start scan in background thread with selected profile
     threading.Thread(
         target=web_scanner.scan_target_web, 
-        args=(target,),  # No wordlist_path needed - using default
+        args=(target, None, profile),  # Added profile parameter
         daemon=True
     ).start()
     
-    return jsonify({"message": f"Scan started for {target}"}), 202
+    return jsonify({"message": f"Scan started for {target} with {profile} profile"}), 202
 
 @app.route("/scan_status/<target>")
 def scan_status(target):

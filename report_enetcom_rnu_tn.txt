@@ -1,0 +1,59 @@
+Vulnerability Scan Report for: enetcom.rnu.tn
+==================================================
+
+Security Score: 90% (Grade: A+)
+Total Vulnerabilities: 3
+
+SCAN STATUS LOG:
+--------------------
+• Starting comprehensive scan for enetcom.rnu.tn
+• Starting comprehensive scan for enetcom.rnu.tn
+• Running Nmap port scan...
+• Nmap completed: 2 ports found
+• Running subdomain enumeration...
+• Subfinder completed: 1 subdomains found
+• Running directory scan...
+• Directory scan completed: 0 directories found
+• Crawling for email addresses...
+• Email crawl completed: 1 emails found
+• Checking emails for data breaches...
+• Breach check completed: 0 pwned emails found
+• Analyzing HTTP security...
+• HTTP analysis completed: 3 issues found
+• 🎯 Starting advanced Nuclei vulnerability scan...
+• ⚙️ Nuclei will scan for CVEs, exploits, and misconfigurations...
+• ⚠️ Nuclei scan partially completed
+• 📊 Partial results: 0 vulnerabilities found
+• ⚡ Phases completed: 3/3
+• ✅ No critical vulnerabilities detected by Nuclei
+• Generating security recommendations...
+• Calculating security score...
+• Scan completed! Security Score: 90% (Grade: A+)
+• Found 3 total vulnerabilities
+• ✅ Scan completed successfully at 2025-07-10 06:44:48!
+
+MODULE RESULTS SUMMARY:
+-------------------------
+Nmap: 2 ports found
+Subfinder: 1 subdomains found
+Email Crawler: 1 emails found
+Pwned Checker: 0 pwned emails found
+Nuclei: 0 findings (0 CVEs)
+
+MEDIUM SEVERITY VULNERABILITIES:
+------------------------------
+• Server header reveals information: Apache
+
+LOW SEVERITY VULNERABILITIES:
+------------------------------
+• X-Powered-By header exposes technology: PHP/8.3.2
+
+INFO SEVERITY VULNERABILITIES:
+------------------------------
+• HSTS header missing - protocol downgrade attacks possible
+
+SECURITY RECOMMENDATIONS:
+-------------------------
+• Remove or customize 'Server' header.
+• Remove or obfuscate the 'X-Powered-By' header.
+

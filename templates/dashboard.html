@@ -12,7 +12,7 @@
         .scan-form { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
         .btn { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s; text-decoration: none; display: inline-block; margin: 5px; }
         .btn:hover { background: #5a6fd8; }
         .btn.secondary { background: #6c757d; }
@@ -112,11 +112,10 @@
                     <label for="target">Target Domain/IP:</label>
                     <input type="text" id="target" name="target" placeholder="example.com or 192.168.1.1" required>
                 </div>
-                <div class="form-group">
-                    <label for="wordlist">Wordlist File (Optional):</label>
-                    <input type="file" id="wordlist" name="wordlist" accept=".txt,.list">
-                </div>
                 <button type="submit" class="btn">🚀 Start Comprehensive Scan</button>
+                <p style="margin-top: 10px; color: #666; font-size: 14px;">
+                    <strong>📁 Directory Scanning:</strong> Gobuster will automatically scan for hidden directories and files using our built-in wordlist.
+                </p>
             </form>
             <div id="status" class="status"></div>
         </div>

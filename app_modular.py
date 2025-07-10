@@ -120,13 +120,6 @@ def index():
 def start_scan():
     """Start a new vulnerability scan"""
     target = request.form.get("target", "").strip()
-    file = request.files.get("wordlist")
-    wordlist_path = None
-
-    if file and file.filename:
-        os.makedirs("uploads", exist_ok=True)
-        wordlist_path = os.path.join("uploads", file.filename)
-        file.save(wordlist_path)
 
     if not target:
         return jsonify({"error": "No target provided"}), 400
@@ -135,10 +128,10 @@ def start_scan():
     if target in scan_data:
         scan_data.pop(target)
 
-    # Start scan in background thread
+    # Start scan in background thread - Gobuster will use default wordlist
     threading.Thread(
         target=web_scanner.scan_target_web, 
-        args=(target, wordlist_path), 
+        args=(target,),  # No wordlist_path needed - using default
         daemon=True
     ).start()
     

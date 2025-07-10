@@ -129,14 +129,14 @@ class VulnerabilityScanner:
         results["module_results"]["subfinder"] = subfinder_results
         update_status(f"Subfinder completed: {subfinder_results['count']} subdomains found")
         
-        # 3. Gobuster scan (if wordlist provided)
+        # 3. Gobuster scan (directory discovery)
         update_status("Running directory scan...")
         gobuster_results = self.scanners['gobuster'].scan(target, wordlist_path)
         results["module_results"]["gobuster"] = gobuster_results
         if gobuster_results["status"] == "skipped":
-            update_status("Directory scan skipped - no wordlist provided")
+            update_status("Directory scan skipped - Gobuster not available or wordlist issues")
         else:
-            update_status(f"Gobuster completed: {gobuster_results['count']} directories found")
+            update_status(f"Directory scan completed: {gobuster_results['count']} directories found")
         
         # 4. Email crawling
         update_status("Crawling for email addresses...")

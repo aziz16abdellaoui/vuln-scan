@@ -5,6 +5,7 @@ Handles directory and file discovery
 """
 
 import subprocess
+import os
 from datetime import datetime
 
 class GobusterScanner:
@@ -20,15 +21,20 @@ class GobusterScanner:
         """
         start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
+        # Use default wordlist if none provided
         if not wordlist_path:
-            return {
-                "directories": [],
-                "count": 0,
-                "status": "skipped",
-                "execution_time": {"start": start_time, "end": start_time},
-                "target": target,
-                "message": "No wordlist provided"
-            }
+            default_wordlist = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'wordlist_common.txt')
+            if os.path.exists(default_wordlist):
+                wordlist_path = default_wordlist
+            else:
+                return {
+                    "directories": [],
+                    "count": 0,
+                    "status": "skipped",
+                    "execution_time": {"start": start_time, "end": start_time},
+                    "target": target,
+                    "message": "No wordlist provided and default wordlist not found"
+                }
         
         try:
             # Quick directory scan

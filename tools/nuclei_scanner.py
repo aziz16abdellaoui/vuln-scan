@@ -79,21 +79,20 @@ class NucleiScanner:
         else:
             target_url = target
             
-        # Build comprehensive Nuclei command for THOROUGH SCANNING
+        # Build optimized Nuclei command for MAXIMUM SPEED
         cmd = [
             self.nuclei_path,
             "-u", target_url,
-            "-silent",  # Reduce noise in output
-            "-timeout", "10",  # Reasonable connection timeout
-            "-rate-limit", "150",  # Moderate rate limit for stability
-            "-max-host-error", "30",  # Allow more errors for comprehensive coverage
-            "-retries", "1",  # Allow retries for better coverage
+            "-timeout", "3",  # Ultra fast connection timeout
+            "-rate-limit", "500",  # Ultra high rate limit for speed
+            "-max-host-error", "3",  # Ultra low error tolerance for speed
+            "-retries", "0",  # No retries for maximum speed
             "-jsonl",  # JSON Lines output for easy parsing
             "-no-color",  # Clean output without ANSI codes
             "-disable-update-check",  # Skip update check
-            "-concurrency", "25",  # Balanced concurrency
+            "-concurrency", "100",  # Ultra high concurrency for speed
             "-follow-redirects",  # Follow redirects for better coverage
-            "-include-rr"  # Include request/response for debugging
+            "-severity", "critical,high,medium,low,info"  # All severity levels
         ]
         
         # Add template specifications to the command
@@ -189,7 +188,7 @@ class NucleiScanner:
         
         return findings, cve_count, exploit_count
     
-    def scan(self, target, nmap_results=""):
+    def scan(self, target, nmap_results="", profile="standard"):
         """
         Run a comprehensive and reliable Nuclei vulnerability scan
         - Uses smart template selection for better coverage
@@ -203,30 +202,43 @@ class NucleiScanner:
         scan_status = "completed"
         phases_run = 0
         
-        print(f"🎯 Starting comprehensive Nuclei scan for {target}")
-        print("⚙️ Using enhanced reliability settings...")
+        print(f"🎯 Starting Nuclei scan for {target} (Profile: {profile})")
+        print("⚙️ Using enhanced speed settings...")
         
-        # Define scan phases optimized for COMPREHENSIVE COVERAGE
-        scan_phases = [
-            {
-                "name": "Essential Security Checks",
-                "templates": ["http/exposures/"],
-                "timeout": 60,  # More time for thorough checks
-                "priority": "high"
-            },
-            {
-                "name": "Web Application Vulnerabilities", 
-                "templates": ["http/misconfiguration/"],
-                "timeout": 60,  # Extended time for web app scanning
-                "priority": "high"
-            },
-            {
-                "name": "Injection Attacks",
-                "templates": ["http/vulnerabilities/"],
-                "timeout": 60,  # SQL injection, XSS, etc.
-                "priority": "high"  
-            }
-        ]
+        # Define scan phases based on profile - ULTRA OPTIMIZED
+        if profile == "quick":
+            scan_phases = [
+                {
+                    "name": "Critical Security Checks",
+                    "templates": ["http/misconfiguration/http-missing-security-headers.yaml"],
+                    "timeout": 5,  # Ultra fast execution
+                    "priority": "high"
+                }
+            ]
+        elif profile == "comprehensive":
+            scan_phases = [
+                {
+                    "name": "Critical Security Checks",
+                    "templates": ["http/misconfiguration/http-missing-security-headers.yaml", "http/exposures/files/ds-store-disclosure.yaml"],
+                    "timeout": 8,  # Fast execution
+                    "priority": "high"
+                },
+                {
+                    "name": "High-Impact Vulnerabilities", 
+                    "templates": ["http/vulnerabilities/generic/", "http/cves/2024/"],
+                    "timeout": 15,  # Quick but thorough
+                    "priority": "high"
+                }
+            ]
+        else:  # standard
+            scan_phases = [
+                {
+                    "name": "Critical Security Checks",
+                    "templates": ["http/misconfiguration/http-missing-security-headers.yaml", "http/exposures/files/ds-store-disclosure.yaml"],
+                    "timeout": 8,  # Fast execution
+                    "priority": "high"
+                }
+            ]
         
         # Add service-specific phases based on Nmap results
         if nmap_results:

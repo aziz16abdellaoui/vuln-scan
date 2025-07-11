@@ -92,37 +92,13 @@ class VulnerabilityScanner:
     
     def _get_profile_config(self, profile):
         """Get configuration for the selected scan profile"""
-        profiles = {
-            'quick': {
-                'description': 'Lightning fast scan (10-20s) - Critical vulnerabilities only',
-                'enable_subfinder': False,  # Skip for maximum speed
-                'enable_gobuster': False,   # Skip for maximum speed
-                'enable_email_crawler': False,  # Skip for maximum speed
-                'enable_pwned_checker': False,  # Skip for maximum speed
-                'nuclei_timeout': 10,
-                'nuclei_phases': ['Essential Security Checks']
-            },
-            'standard': {
-                'description': 'Fast scan (30-45s) - Core vulnerabilities',
-                'enable_subfinder': True,
-                'enable_gobuster': True,
-                'enable_email_crawler': False,  # Skip for speed
-                'enable_pwned_checker': False,  # Skip for speed
-                'nuclei_timeout': 20,
-                'nuclei_phases': ['Essential Security Checks', 'Critical CVEs']
-            },
-            'comprehensive': {
-                'description': 'Complete scan (60-90s) - Full coverage',
-                'enable_subfinder': True,
-                'enable_gobuster': True,
-                'enable_email_crawler': True,
-                'enable_pwned_checker': True,
-                'nuclei_timeout': 45,
-                'nuclei_phases': ['Essential Security Checks', 'Technology Detection', 'Critical CVEs']
-            }
-        }
+        from config import ScannerConfig
+        config = ScannerConfig()
         
-        return profiles.get(profile, profiles['standard'])  # Default to standard if unknown profile
+        # Get profile configuration from central config
+        profile_config = config.SCAN_PROFILES.get(profile, config.SCAN_PROFILES['standard'])
+        
+        return profile_config
     
     def scan_target(self, target, wordlist_path=None, status_callback=None, profile="standard"):
         """
@@ -156,11 +132,16 @@ class VulnerabilityScanner:
             "grade": "F"
         }
         
-        # 1. Nmap scan (always runs - needed for service detection)
-        update_status("Running Nmap port scan...")
-        nmap_results = self.scanners['nmap'].scan(target)
-        results["module_results"]["nmap"] = nmap_results
-        update_status(f"Nmap completed: {nmap_results['ports_found']} ports found")
+        # 1. Nmap scan (profile-dependent)
+        if profile_config.get('enable_nmap', True):
+            update_status("Running Nmap port scan...")
+            nmap_results = self.scanners['nmap'].scan(target)
+            results["module_results"]["nmap"] = nmap_results
+            update_status(f"Nmap completed: {nmap_results['ports_found']} ports found")
+        else:
+            update_status("Skipping Nmap scan (profile setting)")
+            nmap_results = {"ports_found": 0, "status": "skipped", "raw_output": ""}
+            results["module_results"]["nmap"] = nmap_results
         
         # 2. Subfinder scan (profile-dependent)
         if profile_config.get('enable_subfinder', True):
@@ -206,11 +187,16 @@ class VulnerabilityScanner:
             update_status("Skipping breach check (profile setting or no emails found)")
             results["module_results"]["pwned_checker"] = {"count": 0, "pwned_emails": [], "status": "skipped"}
         
-        # 6. HTTP security analysis (always runs)
-        update_status("Analyzing HTTP security...")
-        http_results = self.scanners['http_analyzer'].analyze(target)
-        results["module_results"]["http_analyzer"] = http_results
-        update_status(f"HTTP analysis completed: {http_results['count']} issues found")
+        # 6. HTTP security analysis (profile-dependent)
+        if profile_config.get('enable_http_analyzer', True):
+            update_status("Analyzing HTTP security...")
+            http_results = self.scanners['http_analyzer'].analyze(target, profile)
+            results["module_results"]["http_analyzer"] = http_results
+            update_status(f"HTTP analysis completed: {http_results['count']} issues found")
+        else:
+            update_status("Skipping HTTP analysis (profile setting)")
+            http_results = {"count": 0, "status": "skipped", "issues": []}
+            results["module_results"]["http_analyzer"] = http_results
 
         # 7. Nuclei scan with enhanced status reporting and profile-based timeout
         nuclei_timeout = profile_config.get('nuclei_timeout', 45)
@@ -221,8 +207,8 @@ class VulnerabilityScanner:
         original_timeout = self.scanners['nuclei'].timeout
         self.scanners['nuclei'].timeout = nuclei_timeout
         
-        # Run Nuclei scan with Nmap results for context
-        nuclei_results = self.scanners['nuclei'].scan(target, nmap_results["raw_output"])
+        # Run Nuclei scan with Nmap results for context and profile information
+        nuclei_results = self.scanners['nuclei'].scan(target, nmap_results["raw_output"], profile)
         
         # Restore original timeout
         self.scanners['nuclei'].timeout = original_timeout

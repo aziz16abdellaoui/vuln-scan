@@ -9,13 +9,28 @@ import requests
 from datetime import datetime
 
 class HTTPAnalyzer:
-    def __init__(self, timeout=3):
+    def __init__(self, timeout=2):
         self.timeout = timeout  # Ultra-fast timeout for web requests
     
-    def analyze_headers(self, headers):
+    def analyze_headers(self, headers, profile="standard"):
         """Check HTTP headers for security problems"""
         vulnerabilities = []
         
+        # For quick scans, only check critical headers
+        if profile == "quick":
+            critical_headers = {
+                'X-Frame-Options': "X-Frame-Options header missing - clickjacking vulnerability",
+                'Strict-Transport-Security': "HSTS header missing - protocol downgrade attacks possible",
+                'Content-Security-Policy': "Content-Security-Policy header missing - XSS vulnerability"
+            }
+            
+            for header, message in critical_headers.items():
+                if header not in headers:
+                    vulnerabilities.append(message)
+                    
+            return vulnerabilities
+        
+        # Standard/comprehensive analysis
         # Look for headers that reveal too much information
         if 'X-Powered-By' in headers:
             vulnerabilities.append(f"X-Powered-By header exposes technology: {headers['X-Powered-By']}")
@@ -61,7 +76,7 @@ class HTTPAnalyzer:
         
         return vulnerabilities
     
-    def analyze(self, target):
+    def analyze(self, target, profile="standard"):
         """
         Analyze target for HTTP security issues
         Returns dict with vulnerability results and timing
@@ -72,6 +87,14 @@ class HTTPAnalyzer:
         status = "completed"
         headers_info = {}
         
+        # For quick scans, only check the most critical headers
+        if profile == "quick":
+            quick_checks = [
+                'X-Frame-Options',
+                'Strict-Transport-Security', 
+                'Content-Security-Policy'
+            ]
+        
         try:
             response = requests.get(
                 f"http://{target}", 
@@ -81,13 +104,15 @@ class HTTPAnalyzer:
             
             headers_info = dict(response.headers)
             
-            # Analyze headers
-            header_vulns = self.analyze_headers(response.headers)
+            # Analyze headers with profile awareness
+            header_vulns = self.analyze_headers(response.headers, profile)
             vulnerabilities.extend(header_vulns)
             
-            # Analyze content
-            content_vulns = self.analyze_content(response.text)
-            vulnerabilities.extend(content_vulns)
+            # For quick scans, skip content analysis for speed
+            if profile != "quick":
+                # Analyze content
+                content_vulns = self.analyze_content(response.text)
+                vulnerabilities.extend(content_vulns)
             
         except requests.RequestException as e:
             status = "failed"

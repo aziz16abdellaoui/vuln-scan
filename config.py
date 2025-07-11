@@ -41,34 +41,40 @@ class ScannerConfig:
         """Get default output directory"""
         return os.path.join(os.path.dirname(__file__), 'scan_results')
     
-    # Scan profiles - SPEED OPTIMIZED
+    # Scan profiles - ULTRA SPEED OPTIMIZED
     SCAN_PROFILES = {
         'quick': {
-            'nuclei_timeout': 10,  # Super fast
-            'nuclei_phases': ['Essential Security Checks'],
+            'nuclei_timeout': 5,  # Ultra fast - 5 seconds max
+            'nuclei_phases': ['Critical Security Checks'],
             'enable_gobuster': False,  # Skip for maximum speed
             'enable_subfinder': False,  # Skip for maximum speed
             'enable_email_crawler': False,
             'enable_pwned_checker': False,
-            'description': 'Lightning fast scan (10-20s) - Critical vulnerabilities only'
+            'enable_nmap': False,  # Skip Nmap for ultra speed
+            'enable_http_analyzer': True,  # Keep this for quick security headers check
+            'description': 'Lightning fast scan (5-10s) - Critical vulnerabilities only'
         },
         'standard': {
-            'nuclei_timeout': 20,  # Fast but thorough
-            'nuclei_phases': ['Essential Security Checks', 'Critical CVEs'],
+            'nuclei_timeout': 10,  # Fast but thorough
+            'nuclei_phases': ['Critical Security Checks'],
             'enable_gobuster': True,
-            'enable_subfinder': True,
+            'enable_subfinder': False,  # Skip subfinder for speed
             'enable_email_crawler': False,  # Skip for speed
             'enable_pwned_checker': False,  # Skip for speed
-            'description': 'Fast scan (30-45s) - Core vulnerabilities'
+            'enable_nmap': True,  # Include basic port scan
+            'enable_http_analyzer': True,
+            'description': 'Fast scan (15-25s) - Core vulnerabilities'
         },
         'comprehensive': {
-            'nuclei_timeout': 45,  # Full scan
-            'nuclei_phases': ['Essential Security Checks', 'Technology Detection', 'Critical CVEs'],
+            'nuclei_timeout': 30,  # Reduced from 45 for better speed
+            'nuclei_phases': ['Critical Security Checks', 'High-Impact Vulnerabilities'],
             'enable_gobuster': True,
             'enable_subfinder': True,
             'enable_email_crawler': True,
             'enable_pwned_checker': True,
-            'description': 'Complete scan (60-90s) - Full coverage'
+            'enable_nmap': True,
+            'enable_http_analyzer': True,
+            'description': 'Complete scan (45-60s) - Full coverage'
         }
     }
     

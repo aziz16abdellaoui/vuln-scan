@@ -8,10 +8,10 @@ import subprocess
 from datetime import datetime
 
 class SubfinderScanner:
-    def __init__(self, timeout=25, max_time=20, max_results=10):
-        self.timeout = timeout
-        self.max_time = max_time
-        self.max_results = max_results
+    def __init__(self, timeout=10, max_time=8, max_results=5):
+        self.timeout = timeout  # Ultra-fast timeout
+        self.max_time = max_time  # Very quick execution time
+        self.max_results = max_results  # Limit results for speed
     
     def scan(self, target):
         """

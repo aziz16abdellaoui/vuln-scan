@@ -11,11 +11,11 @@ import time
 from datetime import datetime
 
 class EmailCrawler:
-    def __init__(self, max_depth=1, delay=0.05, max_links_per_page=8, timeout=2):
-        self.max_depth = max_depth
-        self.delay = delay
-        self.max_links_per_page = max_links_per_page
-        self.timeout = timeout
+    def __init__(self, max_depth=1, delay=0, max_links_per_page=3, timeout=1):
+        self.max_depth = max_depth  # Keep shallow
+        self.delay = delay  # No delay for speed
+        self.max_links_per_page = max_links_per_page  # Fewer links for speed  
+        self.timeout = timeout  # Ultra-fast timeout
         self.email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
     
     def extract_emails_from_text(self, text):

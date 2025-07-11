@@ -12,16 +12,16 @@ import time
 from datetime import datetime
 
 class NucleiScanner:
-    def __init__(self, timeout=45, rate_limit=150, max_host_error=20):
+    def __init__(self, timeout=20, rate_limit=300, max_host_error=10):
         """
-        Initialize Nuclei scanner optimized for speed and reliability
-        - timeout: Quick timeout per scan phase for fast results
-        - rate_limit: High rate limit for maximum speed
-        - max_host_error: Balanced error tolerance
+        Initialize Nuclei scanner optimized for MAXIMUM SPEED
+        - timeout: Ultra-fast timeout for lightning-quick results
+        - rate_limit: Maximum rate limit for blazing speed
+        - max_host_error: Lower error tolerance for faster completion
         """
-        self.timeout = timeout  # Faster timeout for quick scans
-        self.rate_limit = rate_limit  # Higher rate limit for speed
-        self.max_host_error = max_host_error  # Reasonable error tolerance
+        self.timeout = timeout  # Ultra-fast timeout
+        self.rate_limit = rate_limit  # Maximum rate limit
+        self.max_host_error = max_host_error  # Faster error handling
         self.nuclei_path = self.find_nuclei_binary()
         
         # Skip template update for faster startup
@@ -79,21 +79,22 @@ class NucleiScanner:
         else:
             target_url = target
             
-        # Build optimized Nuclei command for maximum speed
+        # Build optimized Nuclei command for LIGHTNING SPEED
         cmd = [
             self.nuclei_path,
             "-u", target_url,
             "-silent",  # Reduce noise in output
-            "-timeout", "5",  # Fast connection timeout per request
+            "-timeout", "2",  # Ultra-fast connection timeout
             "-rate-limit", str(self.rate_limit),
             "-max-host-error", str(self.max_host_error),
-            "-retries", "1",  # Minimal retries for speed
+            "-retries", "0",  # No retries for maximum speed
             "-jsonl",  # JSON Lines output for easy parsing
             "-no-color",  # Clean output without ANSI codes
             "-disable-update-check",  # Skip update check for speed
-            "-concurrency", "50",  # High concurrency for speed
+            "-concurrency", "100",  # Maximum concurrency for speed
             "-no-httpx",  # Skip httpx for faster scanning
-            "-no-interactsh"  # Skip interaction server for speed
+            "-no-interactsh",  # Skip interaction server for speed
+            "-no-stats"  # Skip statistics for speed
         ]
         
         # Add template specifications to the command
@@ -206,24 +207,18 @@ class NucleiScanner:
         print(f"🎯 Starting comprehensive Nuclei scan for {target}")
         print("⚙️ Using enhanced reliability settings...")
         
-        # Define scan phases optimized for speed and essential coverage
+        # Define scan phases optimized for MAXIMUM SPEED
         scan_phases = [
             {
                 "name": "Essential Security Checks",
                 "templates": ["http/exposures/", "http/misconfiguration/"],
-                "timeout": 30,  # Quick essential checks
+                "timeout": 15,  # Ultra-fast essential checks
                 "priority": "high"
-            },
-            {
-                "name": "Technology Detection", 
-                "templates": ["http/technologies/"],
-                "timeout": 20,  # Fast tech detection
-                "priority": "medium"
             },
             {
                 "name": "Critical CVEs",
                 "templates": ["http/cves/2024/", "http/vulnerabilities/"],
-                "timeout": 35,  # Focus on recent CVEs
+                "timeout": 20,  # Quick CVE detection
                 "priority": "high"
             }
         ]

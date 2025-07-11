@@ -94,31 +94,31 @@ class VulnerabilityScanner:
         """Get configuration for the selected scan profile"""
         profiles = {
             'quick': {
-                'description': 'Fast scan for basic vulnerabilities (30-60s)',
-                'enable_subfinder': True,
-                'enable_gobuster': False,  # Skip for speed
-                'enable_email_crawler': False,  # Skip for speed
-                'enable_pwned_checker': False,  # Skip for speed
-                'nuclei_timeout': 30,
+                'description': 'Lightning fast scan (10-20s) - Critical vulnerabilities only',
+                'enable_subfinder': False,  # Skip for maximum speed
+                'enable_gobuster': False,   # Skip for maximum speed
+                'enable_email_crawler': False,  # Skip for maximum speed
+                'enable_pwned_checker': False,  # Skip for maximum speed
+                'nuclei_timeout': 10,
                 'nuclei_phases': ['Essential Security Checks']
             },
             'standard': {
-                'description': 'Balanced scan with good coverage (90-120s)',
+                'description': 'Fast scan (30-45s) - Core vulnerabilities',
+                'enable_subfinder': True,
+                'enable_gobuster': True,
+                'enable_email_crawler': False,  # Skip for speed
+                'enable_pwned_checker': False,  # Skip for speed
+                'nuclei_timeout': 20,
+                'nuclei_phases': ['Essential Security Checks', 'Critical CVEs']
+            },
+            'comprehensive': {
+                'description': 'Complete scan (60-90s) - Full coverage',
                 'enable_subfinder': True,
                 'enable_gobuster': True,
                 'enable_email_crawler': True,
                 'enable_pwned_checker': True,
                 'nuclei_timeout': 45,
                 'nuclei_phases': ['Essential Security Checks', 'Technology Detection', 'Critical CVEs']
-            },
-            'comprehensive': {
-                'description': 'Deep scan with maximum coverage (3-5min)',
-                'enable_subfinder': True,
-                'enable_gobuster': True,
-                'enable_email_crawler': True,
-                'enable_pwned_checker': True,
-                'nuclei_timeout': 90,
-                'nuclei_phases': ['Essential Security Checks', 'Technology Detection', 'Critical CVEs', 'Service-Specific']
             }
         }
         

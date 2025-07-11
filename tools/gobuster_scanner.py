@@ -9,10 +9,10 @@ import os
 from datetime import datetime
 
 class GobusterScanner:
-    def __init__(self, timeout=40, threads=20, request_timeout="10s"):
-        self.timeout = timeout
-        self.threads = threads
-        self.request_timeout = request_timeout
+    def __init__(self, timeout=15, threads=50, request_timeout="3s"):
+        self.timeout = timeout  # Ultra-fast timeout
+        self.threads = threads  # High concurrency
+        self.request_timeout = request_timeout  # Quick requests
     
     def scan(self, target, wordlist_path=None):
         """

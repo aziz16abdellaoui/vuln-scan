@@ -9,8 +9,8 @@ import requests
 from datetime import datetime
 
 class HTTPAnalyzer:
-    def __init__(self, timeout=8):
-        self.timeout = timeout  # How long to wait for web requests
+    def __init__(self, timeout=3):
+        self.timeout = timeout  # Ultra-fast timeout for web requests
     
     def analyze_headers(self, headers):
         """Check HTTP headers for security problems"""

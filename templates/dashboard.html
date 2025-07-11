@@ -130,9 +130,6 @@
                 </div>
 
                 <button type="submit" class="btn">🚀 Start Comprehensive Scan</button>
-                <p style="margin-top: 10px; color: #666; font-size: 14px;">
-                    <strong>📁 Directory Scanning:</strong> Gobuster will automatically scan for hidden directories and files using our built-in wordlist.
-                </p>
             </form>
             <div id="status" class="status"></div>
         </div>
@@ -192,7 +189,7 @@
         let scanInterval;
         let pollCount = 0;
         let finalScanData
-        const MAX_POLL_COUNT = 300; // Stop after 5 minutes of polling (300 * 1s intervals)
+        const MAX_POLL_COUNT = 600; // Stop after 10 minutes of polling (600 * 1s intervals)
 
         document.getElementById('scanForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -240,7 +237,22 @@
                 if (pollCount > MAX_POLL_COUNT) {
                     clearInterval(scanInterval);
                     document.getElementById('scanProgress').style.display = 'none';
-                    showStatus('Scan timeout - stopped polling after 5 minutes. Check console or try again.', 'error');
+                    
+                    // Check if scan is still alive before declaring timeout
+                    try {
+                        const aliveResponse = await fetch(`/scan_alive/${currentTarget}`);
+                        const aliveData = await aliveResponse.json();
+                        
+                        if (aliveData.alive) {
+                            showStatus('Scan is taking longer than expected but still running. Check back later or refresh the page.', 'error');
+                        } else if (aliveData.reason === 'completed') {
+                            showStatus('Scan completed but results may not have loaded properly. Please refresh the page.', 'error');
+                        } else {
+                            showStatus(`Scan timeout: ${aliveData.message || 'No response after 10 minutes'}`, 'error');
+                        }
+                    } catch (error) {
+                        showStatus('Scan timeout - stopped polling after 10 minutes. The scan may still be running in the background.', 'error');
+                    }
                     return;
                 }
                 
@@ -248,9 +260,21 @@
                     const response = await fetch(`/scan_status/${currentTarget}`);
                     const data = await response.json();
                     
+                    // Handle different error types
                     if (data.error) {
                         clearInterval(scanInterval);
-                        showStatus('Scan not found', 'error');
+                        document.getElementById('scanProgress').style.display = 'none';
+                        
+                        let errorMessage = 'Scan error occurred';
+                        if (data.error_type === 'scan_not_found') {
+                            errorMessage = 'Scan data not found - scan may have expired or never started';
+                        } else if (data.error_type === 'scan_error') {
+                            errorMessage = `Scan failed: ${data.message || data.error}`;
+                        } else {
+                            errorMessage = `Scan error: ${data.message || data.error}`;
+                        }
+                        
+                        showStatus(errorMessage, 'error');
                         return;
                     }
                     
@@ -274,7 +298,17 @@
                 } catch (error) {
                     console.error('Error polling status:', error);
                     clearInterval(scanInterval);
-                    showStatus('Error during scan - stopped polling', 'error');
+                    document.getElementById('scanProgress').style.display = 'none';
+                    
+                    // More specific error messages based on error type
+                    let errorMessage = 'Connection error - please check if the server is running';
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        errorMessage = 'Network error - unable to connect to scanner service';
+                    } else if (error.message.includes('timeout')) {
+                        errorMessage = 'Request timeout - scanner may be overloaded';
+                    }
+                    
+                    showStatus(errorMessage, 'error');
                 }
             }, 1000);
         }

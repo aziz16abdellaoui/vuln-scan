@@ -149,9 +149,23 @@ def start_scan():
 def scan_status(target):
     """Get current scan status and results"""
     if target not in scan_data:
-        return jsonify({"error": "No scan data found"}), 404
+        return jsonify({
+            "error": "Scan not found",
+            "error_type": "scan_not_found",
+            "message": f"No scan data found for target: {target}"
+        }), 404
     
     data = scan_data[target]
+    
+    # Check for scan errors
+    if data.get("error"):
+        return jsonify({
+            "error": data.get("error"),
+            "error_type": "scan_error",
+            "message": f"Scan failed: {data.get('error')}",
+            "completed": True,
+            "status": data.get("status", [])
+        })
     
     # Format response for web interface compatibility
     response = {
@@ -263,21 +277,46 @@ def test_modules():
 
 @app.route("/scan_alive/<target>")
 def scan_alive(target):
-    """Check if scan is still actively running"""
+    """Check if scan is still actively running with more detailed status"""
     if target not in scan_data:
-        return jsonify({"alive": False, "reason": "no_scan_data"}), 404
+        return jsonify({
+            "alive": False,
+            "reason": "no_scan_data",
+            "message": f"No scan found for target: {target}"
+        }), 404
     
     data = scan_data[target]
     
     # Check if scan completed
     if data.get("completed", False):
-        return jsonify({"alive": False, "reason": "completed"})
+        return jsonify({
+            "alive": False,
+            "reason": "completed",
+            "message": "Scan completed successfully"
+        })
+    
+    # Check if scan failed
+    if data.get("error"):
+        return jsonify({
+            "alive": False,
+            "reason": "error",
+            "message": f"Scan failed: {data.get('error')}"
+        })
     
     # Check if scan has recent activity (within last 30 seconds)
     if data.get("status"):
-        return jsonify({"alive": True, "reason": "active", "status_count": len(data["status"])})
+        return jsonify({
+            "alive": True,
+            "reason": "active",
+            "status_count": len(data["status"]),
+            "message": "Scan is actively running"
+        })
     
-    return jsonify({"alive": True, "reason": "unknown"})
+    return jsonify({
+        "alive": True,
+        "reason": "unknown",
+        "message": "Scan status unknown but data exists"
+    })
 
 if __name__ == "__main__":
     import socket

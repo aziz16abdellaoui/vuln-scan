@@ -79,22 +79,21 @@ class NucleiScanner:
         else:
             target_url = target
             
-        # Build optimized Nuclei command for LIGHTNING SPEED
+        # Build comprehensive Nuclei command for THOROUGH SCANNING
         cmd = [
             self.nuclei_path,
             "-u", target_url,
             "-silent",  # Reduce noise in output
-            "-timeout", "2",  # Ultra-fast connection timeout
-            "-rate-limit", str(self.rate_limit),
-            "-max-host-error", str(self.max_host_error),
-            "-retries", "0",  # No retries for maximum speed
+            "-timeout", "10",  # Reasonable connection timeout
+            "-rate-limit", "150",  # Moderate rate limit for stability
+            "-max-host-error", "30",  # Allow more errors for comprehensive coverage
+            "-retries", "1",  # Allow retries for better coverage
             "-jsonl",  # JSON Lines output for easy parsing
             "-no-color",  # Clean output without ANSI codes
-            "-disable-update-check",  # Skip update check for speed
-            "-concurrency", "100",  # Maximum concurrency for speed
-            "-no-httpx",  # Skip httpx for faster scanning
-            "-no-interactsh",  # Skip interaction server for speed
-            "-no-stats"  # Skip statistics for speed
+            "-disable-update-check",  # Skip update check
+            "-concurrency", "25",  # Balanced concurrency
+            "-follow-redirects",  # Follow redirects for better coverage
+            "-include-rr"  # Include request/response for debugging
         ]
         
         # Add template specifications to the command
@@ -207,19 +206,25 @@ class NucleiScanner:
         print(f"🎯 Starting comprehensive Nuclei scan for {target}")
         print("⚙️ Using enhanced reliability settings...")
         
-        # Define scan phases optimized for MAXIMUM SPEED
+        # Define scan phases optimized for COMPREHENSIVE COVERAGE
         scan_phases = [
             {
                 "name": "Essential Security Checks",
-                "templates": ["http/exposures/", "http/misconfiguration/"],
-                "timeout": 15,  # Ultra-fast essential checks
+                "templates": ["http/exposures/"],
+                "timeout": 60,  # More time for thorough checks
                 "priority": "high"
             },
             {
-                "name": "Critical CVEs",
-                "templates": ["http/cves/2024/", "http/vulnerabilities/"],
-                "timeout": 20,  # Quick CVE detection
+                "name": "Web Application Vulnerabilities", 
+                "templates": ["http/misconfiguration/"],
+                "timeout": 60,  # Extended time for web app scanning
                 "priority": "high"
+            },
+            {
+                "name": "Injection Attacks",
+                "templates": ["http/vulnerabilities/"],
+                "timeout": 60,  # SQL injection, XSS, etc.
+                "priority": "high"  
             }
         ]
         

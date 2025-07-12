@@ -14,6 +14,13 @@ selenium==4.15.2
 # Data Processing and Analysis
 python-nmap==0.7.1
 
+# Production Server
+gunicorn==21.2.0
+
+# Additional Flask utilities
+click==8.1.7
+itsdangerous==2.1.2
+
 # JSON and XML Processing (built-in modules)
 # json - built-in
 # xml.etree.ElementTree - built-in
